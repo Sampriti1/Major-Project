@@ -1,0 +1,25 @@
+# Core ML + Deep Learning
+torch
+torchvision
+torchaudio
+tensorflow
+
+# Data handling & preprocessing
+numpy
+pandas
+scikit-learn
+opencv-python
+Pillow
+
+# Visualization
+matplotlib
+seaborn
+
+# Web frameworks (for backend API)
+flask
+fastapi
+uvicorn
+
+# Utilities
+tqdm
+python-multipart
