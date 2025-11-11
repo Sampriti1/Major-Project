@@ -1,10 +1,11 @@
 import os
-from flask import Flask, request, render_template
+from flask import Flask, request, jsonify, render_template
 from PIL import Image
 import torch
 import torch.nn as nn
 from torchvision import models, transforms
 from torchvision.models import ResNet18_Weights 
+import torch.nn.functional as F
 
 
 app = Flask(__name__)
@@ -37,40 +38,99 @@ transform = transforms.Compose([
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-@app.route("/", methods=["GET", "POST"])
+def get_curing_suggestions(disease_name):
+    """Returns a list of suggestion objects for a given disease name."""
+    suggestions_map = {
+        "Anthracnose": [
+            {"icon": "fa-fan", "text": "Improve **air circulation** around the plants."},
+            {"icon": "fa-scissors", "text": "Promptly **prune and destroy** infected branches and leaves."},
+            {"icon": "fa-spray-can", "text": "Apply recommended **copper-based fungicides** regularly."},
+            {"icon": "fa-trash-can", "text": "Clear plant debris from the base of the tea plant."}
+        ],
+        "algal leaf": [
+            {"icon": "fa-pump-medical", "text": "Apply liquid copper fungicide to affected areas."},
+            {"icon": "fa-water", "text": "Ensure proper drainage to reduce humidity."},
+            {"icon": "fa-sun", "text": "Increase sunlight and air exposure to dry the leaves."}
+        ],
+        "bird eye spot": [
+            {"icon": "fa-sun", "text": "Ensure **proper sunlight** exposure, as infection is common in shaded areas."},
+            {"icon": "fa-leaf", "text": "Remove and destroy severely spotted leaves."},
+            {"icon": "fa-spray-can", "text": "Apply suitable **fungicides** (e.g., copper oxychloride) in severe cases."},
+            {"icon": "fa-tree", "text": "Promote overall plant vigor with balanced nutrition."}
+        ],
+        "brown blight": [
+            {"icon": "fa-leaf", "text": "Remove and destroy **all infected leaves** to prevent spread."},
+            {"icon": "fa-wind", "text": "Avoid overcrowding to improve air circulation and reduce moisture."},
+            {"icon": "fa-fire-extinguisher", "text": "Use effective **chemical treatments** targeting fungal pathogens."},
+        ],
+        "gray light": [
+            {"icon": "fa-hand-scissors", "text": "Prune severely affected parts and destroy them."},
+            {"icon": "fa-temperature-low", "text": "Maintain proper **humidity and temperature** control, especially during storage."},
+            {"icon": "fa-spray-can", "text": "Apply a fungicide early upon detection to halt progression."},
+        ],
+        "red leaf spot": [
+            {"icon": "fa-tint", "text": "Ensure **good drainage** and avoid standing water near the roots."},
+            {"icon": "fa-tree", "text": "Apply **urea** or other nitrogenous fertilizers carefully, as excess can worsen it."},
+            {"icon": "fa-scissors", "text": "Remove and dispose of all fallen, infected leaves."},
+        ],
+        "white spot": [
+            {"icon": "fa-shield-halved", "text": "Apply **sulfur-based fungicides** as a primary defense."},
+            {"icon": "fa-brush", "text": "In non-severe cases, wiping the leaves with a damp cloth may help."},
+            {"icon": "fa-clock", "text": "Ensure proper spacing and prune to maximize airflow."},
+        ],
+        "healthy": [
+            {"icon": "fa-check-circle", "text": "The leaf appears **perfectly healthy**! Keep up the good agricultural practice."},
+            {"icon": "fa-hand-holding-water", "text": "Maintain a balanced **irrigation and nutrient** schedule."},
+        ]
+    }
+    
+    # This ensures a clean fallback message if a class name is missed or misspelled
+    return suggestions_map.get(disease_name, 
+        [{"icon": "fa-search", "text": f"No specific treatment found for {disease_name}. Consult an agricultural expert."}])
+
+@app.route("/")
 def index():
-    result = None
-    if request.method == "POST":
-        if "file" not in request.files:
-            result = "No file part"
-            return render_template("index.html", result=result)
 
-        file = request.files["file"]
-        if file.filename == "":
-            result = "No selected file"
-            return render_template("index.html", result=result)
+    return render_template("index.html")
 
-        if file:
-   
+@app.route("/api/detect", methods=["POST"])
+def detect_disease():
+    if "file" not in request.files:
+        return jsonify({"error": "No file part received"}), 400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+
+    if file:
+        try:
+            # 1. Save and Load Image
             filepath = os.path.join(UPLOAD_FOLDER, file.filename)
             file.save(filepath)
-
             
             image = Image.open(filepath).convert("RGB")
-            image = transform(image)
-            image = image.unsqueeze(0).to(device)
+            image_tensor = transform(image).unsqueeze(0).to(device)
 
-           
+            # 2. Prediction
             with torch.no_grad():
-                output = model(image)
-                _, predicted = torch.max(output, 1)
-                result = class_names[predicted.item()]
-
-            
+                output = model(image_tensor)
+                
+                probabilities = F.softmax(output, dim=1)[0]
+                confidence_score = round(torch.max(probabilities).item() * 100)
+                predicted_index = torch.argmax(probabilities).item()
+                disease_name = class_names[predicted_index]
+            suggestions = get_curing_suggestions(disease_name)
             os.remove(filepath)
+            return jsonify({
+                "disease_name": disease_name,
+                "sub_details": f"Probable Severity: {('High' if confidence_score > 70 else 'Medium')}",
+                "confidence": confidence_score,
+                "suggestions": suggestions
+            })    
+        except Exception as e:
+            print(f"Prediction Error: {e}")
+            return jsonify({"error": "Failed during model prediction or file handling."}), 500
 
-    return render_template("index.html", result=result)
-
+    return jsonify({"error": "An unknown error occurred"}), 500 
 
 if __name__ == "__main__":
     app.run(debug=True)
