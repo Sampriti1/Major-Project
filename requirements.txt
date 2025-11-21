@@ -23,3 +23,5 @@ uvicorn
 # Utilities
 tqdm
 python-multipart
+#camera
+opencv-python
