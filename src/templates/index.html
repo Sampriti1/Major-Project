@@ -127,10 +127,12 @@
                 </button>
             </form>
 
-            <button
-                class="bg-custom-dark-green text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-700 transition duration-300 flex items-center justify-center w-full">
-                <i class="fas fa-video mr-2"></i> Live Camera
-            </button>
+           <button
+    onclick="openCameraModal()"
+    class="bg-custom-dark-green text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-700 transition duration-300 flex items-center justify-center w-full">
+    <i class="fas fa-video mr-2"></i> Live Camera
+</button>
+
         </div>
 
         <div class="frosted-card w-1/4 p-6 flex flex-col">
@@ -165,8 +167,30 @@
                 </li>
             </ul>
         </div>
+        <!-- Camera Modal -->
+<div id="cameraModal" class="fixed inset-0 bg-black bg-opacity-70 hidden justify-center items-center z-50">
+    <div class="bg-white p-5 rounded-lg shadow-lg w-96 text-center">
+        <h2 class="text-xl font-bold mb-3">Live Camera</h2>
+
+        <video id="cameraFeed" autoplay class="w-full h-64 object-cover rounded"></video>
+
+        <button onclick="captureImage()" 
+                class="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg">
+            Capture
+        </button>
+
+        <button onclick="closeCameraModal()" 
+                class="mt-2 bg-gray-400 text-white px-4 py-2 rounded-lg">
+            Close
+        </button>
+
+        <canvas id="cameraCanvas" class="hidden"></canvas>
+    </div>
+</div>
+
     </main>
     <script>
+
         document.querySelector('label[for="leafFile"]').addEventListener('click', () => {
             console.log('Label clicked!');
         });
@@ -280,8 +304,65 @@
                 list.appendChild(li);
             });
         }
-    </script>
-  <!--  <script src="/static/live_camera.js"></script>-->
+
+
+    let stream;
+
+// Open camera modal
+function openCameraModal() {
+    document.getElementById('cameraModal').classList.remove('hidden');
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(s => {
+            stream = s;
+            document.getElementById('cameraFeed').srcObject = stream;
+        })
+        .catch(err => {
+            alert("Camera access denied!");
+            console.error(err);
+        });
+}
+
+// Close camera
+function closeCameraModal() {
+    document.getElementById('cameraModal').classList.add('hidden');
+    if (stream) stream.getTracks().forEach(t => t.stop());
+}
+
+// Capture the image
+async function captureImage() {
+    const video = document.getElementById('cameraFeed');
+    const canvas = document.getElementById('cameraCanvas');
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+
+    const base64Image = canvas.toDataURL("image/jpeg");
+
+    closeCameraModal();
+    alert("Detection Complete!");
+
+    // Send captured image to backend
+    const response = await fetch("/api/detect_live", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: base64Image })
+    });
+
+    const result = await response.json();
+
+    // Update your UI
+    updateDashboard(result);
+
+    // Show captured leaf image
+    document.getElementById("diseaseImage").src = base64Image;
+    document.getElementById("initialPlaceholderIcon").classList.add("hidden");
+    document.getElementById("diseaseImage").classList.remove("hidden");
+}
+</script>
 
 </body>
 
