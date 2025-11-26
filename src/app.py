@@ -6,6 +6,8 @@ import torch.nn as nn
 from torchvision import models, transforms
 from torchvision.models import ResNet18_Weights 
 import torch.nn.functional as F
+import base64
+from io import BytesIO
 
 
 app = Flask(__name__)
@@ -131,8 +133,6 @@ def detect_disease():
             return jsonify({"error": "Failed during model prediction or file handling."}), 500
 
     return jsonify({"error": "An unknown error occurred"}), 500 
-import base64
-from io import BytesIO
 
 @app.route("/api/detect_live", methods=["POST"])
 def detect_live():
