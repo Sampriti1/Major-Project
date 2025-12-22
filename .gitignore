@@ -4,6 +4,8 @@ __pycache__/
 
 # Virtual environment
 tea-env/
+env/
+venv/
 
 # Temporary files
 *.log

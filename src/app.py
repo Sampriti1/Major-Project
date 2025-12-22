@@ -16,10 +16,38 @@ app = Flask(__name__)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-from loadData import get_dataloaders
-train_dataset, _, _, _, _, _ = get_dataloaders(batch_size=1)
-class_names = train_dataset.classes
+#from loadData import get_dataloaders
+#train_dataset, _, _, _, _, _ = get_dataloaders(batch_size=1)
+#class_names = train_dataset.classes
+# Load the specific class order from training
+import json
 
+# ... (imports)
+
+# REMOVE THE OLD "from loadData..." LINES
+
+# ADD THESE LINES INSTEAD:
+try:
+    with open("models/class_names.json", "r") as f:
+        class_names = json.load(f)
+    print("Loaded class names:", class_names)
+except FileNotFoundError:
+    print("Error: class_names.json not found! Run train.py first.")
+    
+    # Fallback List (Matched to your screenshot & Python's sorting rules)
+    # Note: 'Anthracnose' comes first because capital 'A' comes before lowercase 'a' in Python
+    class_names = [
+        'Anthracnose', 
+        'algal leaf', 
+        'bird eye spot', 
+        'brown blight', 
+        'gray light', 
+        'healthy', 
+        'red leaf spot', 
+        'white spot'
+    ]
+
+# ... (Rest of app.py)
 
 
 model = models.resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)  
@@ -34,8 +62,10 @@ model.eval()
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5])
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225])
 ])
+
 
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
