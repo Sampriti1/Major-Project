@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeaLeaf Diagnostics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-green: #388E3C;
+            --dark-green: #1B5E20;
+            --light-green: #8BC34A;
+        }
+        .hero-bg {
+            background-image: url('/static/tea_leaf.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .frosted-card {
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+        .navbar-solid-green { background-color: #1B5E20; }
+        .btn-light-green { background-color: #8BC34A; }
+        .btn-light-green:hover { background-color: #68A53B; }
+        .btn-dark-green { background-color: #1B5E20; }
+        .btn-dark-green:hover { background-color: #2E7D32; }
+    </style>
+</head>
+
+<body class="hero-bg min-h-screen">
+
+    <!-- Navbar -->
+    <header class="navbar-solid-green flex items-center py-4 px-8 relative z-10">
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-leaf text-xl text-white"></i>
+            <span class="text-xl font-bold text-white tracking-wide">TeaLeaf Diagnostics</span>
+        </div>
+    </header>
+
+    <!-- Main 3-column layout -->
+    <main class="container mx-auto px-4 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+
+        <div class="frosted-card p-6 text-center">
+            <h2 class="text-lg font-bold mb-4 text-gray-700">Upload Image</h2>
+            <form id="uploadForm" action="/api/detect" method="POST" enctype="multipart/form-data">
+                <input type="file" id="leafFile" name="file" accept="image/*" class="hidden">
+
+                <label for="leafFile"
+                    class="border-2 border-dashed border-gray-400 rounded-xl mb-4 flex flex-col items-center justify-center h-56 cursor-pointer w-full hover:border-green-500 transition">
+                    <i class="fas fa-camera text-5xl text-gray-400 mb-3" id="uploadIcon"></i>
+                    <span class="text-xs bg-gray-200 text-gray-700 px-3 py-1 rounded-full font-medium hover:bg-gray-300 transition">
+                        Browse Files
+                    </span>
+                    <p id="fileNameDisplay" class="text-sm text-gray-500 mt-2 italic">No file selected</p>
+                </label>
+
+                <button type="submit" id="submitButton"
+                    class="btn-light-green text-white font-bold py-3 px-8 rounded-full shadow-lg transition w-full mb-3 flex items-center justify-center">
+                    <i class="fas fa-check mr-2"></i> Analyze Leaf
+                </button>
+            </form>
+
+            <button onclick="openCameraModal()"
+                class="btn-dark-green text-white font-bold py-3 px-8 rounded-full shadow-lg transition w-full flex items-center justify-center">
+                <i class="fas fa-video mr-2"></i> Live Camera
+            </button>
+        </div>
+
+        <div class="frosted-card p-6 flex flex-col min-h-[500px]">
+            <h2 class="text-lg font-bold mb-4 text-gray-700 text-center">Disease Information</h2>
+            <p class="text-xs text-gray-400 text-center mb-1">Uploaded Leaf</p>
+            <div class="h-48 w-full bg-gray-100 rounded-lg overflow-hidden mb-3 flex items-center justify-center border border-gray-200">
+                <img src="" alt="Analyzed Tea Leaf" class="w-full h-full object-cover hidden" id="diseaseImage">
+                <i class="fas fa-leaf text-5xl text-gray-300" id="initialPlaceholderIcon"></i>
+            </div>
+
+            <div id="gradcamContainer" class="hidden mb-3">
+                <p class="text-xs text-gray-400 text-center mb-1">
+                    <i class="fas fa-fire text-orange-400 mr-1"></i> Disease hotspot heatmap
+                </p>
+                <div class="h-48 w-full bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center border border-gray-200">
+                    <img id="gradcamImage" src="" alt="Grad-CAM Heatmap" class="w-full h-full object-cover rounded-lg"/>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-extrabold text-gray-800 text-center mb-1" id="diseaseName">No Analysis Yet</h3>
+            <p class="text-sm text-gray-500 text-center mb-4" id="diseaseDetails">Upload an image to detect the disease</p>
+
+            <div class="mt-auto">
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div class="h-2.5 rounded-full transition-all duration-500" id="confidenceBar" style="width: 0%; background-color: #D32F2F;"></div>
+                </div>
+                <p class="text-xs text-right text-gray-600 mt-1" id="confidenceText">Confidence: 0%</p>
+            </div>
+        </div>
+
+        <div class="frosted-card p-6 flex flex-col h-full max-h-[700px] overflow-y-auto">
+            <h2 class="text-lg font-bold mb-4 text-gray-700 text-center">Curing Suggestions</h2>
+            <h3 class="text-sm font-semibold text-gray-600 mb-2"><i class="fas fa-hand-sparkles text-green-500 mr-1"></i> Practical Measures</h3>
+            <ul class="space-y-3 text-left text-gray-700 mb-6" id="practicalSuggestionsList">
+                <li class="flex items-start text-sm text-gray-400"><i class="fas fa-info-circle mr-3 mt-0.5"></i>Awaiting analysis results...</li>
+            </ul>
+            <h3 class="text-sm font-semibold text-gray-600 mb-2"><i class="fas fa-seedling text-green-500 mr-1"></i> Fertilizer Suggestions</h3>
+            <ul class="space-y-3 text-left text-gray-700" id="fertilizerSuggestionsList">
+                <li class="flex items-start text-sm text-gray-400"><i class="fas fa-info-circle mr-3 mt-0.5"></i>Awaiting analysis results...</li>
+            </ul>
+        </div>
+
+    </div>
+</main>
+
+    <!-- Camera Modal -->
+    <div id="cameraModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex justify-center items-center z-50">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl w-96 text-center">
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Live Camera</h2>
+            <video id="cameraFeed" autoplay class="w-full h-64 object-cover rounded-lg mb-4"></video>
+            <div class="flex gap-3 justify-center">
+                <button onclick="captureImage()" class="btn-light-green text-white px-6 py-2 rounded-full font-bold">
+                    <i class="fas fa-camera mr-1"></i> Capture
+                </button>
+                <button onclick="closeCameraModal()" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-full font-bold">
+                    Close
+                </button>
+            </div>
+            <canvas id="cameraCanvas" class="hidden"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('leafFile').addEventListener('change', function () {
+            const file = this.files[0];
+            const diseaseImage = document.getElementById('diseaseImage');
+            const placeholderIcon = document.getElementById('initialPlaceholderIcon');
+
+            if (file) {
+                document.getElementById('fileNameDisplay').textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    diseaseImage.src = e.target.result;
+                    diseaseImage.classList.remove('hidden');
+                    placeholderIcon.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('fileNameDisplay').textContent = 'No file selected';
+                diseaseImage.src = '';
+                diseaseImage.classList.add('hidden');
+                placeholderIcon.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const submitButton = document.getElementById('submitButton');
+
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Analyzing...';
+            submitButton.disabled = true;
+
+            try {
+                const response = await fetch(form.action, { method: form.method, body: formData });
+                if (!response.ok) throw new Error('Analysis failed: ' + response.statusText);
+                const result = await response.json();
+                updateDashboard(result);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('diseaseName').textContent = 'Error!';
+                document.getElementById('diseaseDetails').textContent = 'Could not connect to the server.';
+            } finally {
+                submitButton.innerHTML = '<i class="fas fa-check mr-2"></i> Analyze Leaf';
+                submitButton.disabled = false;
+            }
+        });
+
+        function updateDashboard(data) {
+            document.getElementById('diseaseName').textContent = data.disease_name || 'Unknown Disease';
+            document.getElementById('diseaseDetails').textContent = data.sub_details || 'No details provided.';
+
+            const confidence = data.confidence || 0;
+            const bar = document.getElementById('confidenceBar');
+            bar.style.width = confidence + '%';
+            bar.style.backgroundColor = confidence >= 80 ? '#388E3C' : confidence >= 50 ? '#F9A825' : '#D32F2F';
+            document.getElementById('confidenceText').textContent = `Confidence: ${confidence}%`;
+
+            if (data.gradcam_image) {
+                const heatmap = document.getElementById('gradcamImage');
+                const container = document.getElementById('gradcamContainer');
+                heatmap.src = 'data:image/jpeg;base64,' + data.gradcam_image;
+                container.classList.remove('hidden');
+            }
+
+            updateSuggestionsList('practicalSuggestionsList', data.practical_suggestions || []);
+            updateSuggestionsList('fertilizerSuggestionsList', data.fertilizer_nutrient_suggestions || []);
+        }
+
+        function updateSuggestionsList(listId, suggestions) {
+            const list = document.getElementById(listId);
+            list.innerHTML = '';
+            if (suggestions.length === 0) {
+                list.innerHTML = `<li class="text-sm text-gray-400">No suggestions available.</li>`;
+                return;
+            }
+            suggestions.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'flex items-start text-sm text-gray-700 gap-2';
+                li.innerHTML = `<i class="fas ${item.icon || 'fa-seedling'} text-green-500 mt-0.5"></i><span>${index + 1}. ${item.text}</span>`;
+                list.appendChild(li);
+            });
+        }
+
+        let stream;
+
+        function openCameraModal() {
+            document.getElementById('cameraModal').classList.remove('hidden');
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(s => { stream = s; document.getElementById('cameraFeed').srcObject = stream; })
+                .catch(err => { alert("Camera access denied!"); console.error(err); });
+        }
+
+        function closeCameraModal() {
+            document.getElementById('cameraModal').classList.add('hidden');
+            if (stream) stream.getTracks().forEach(t => t.stop());
+        }
+
+        async function captureImage() {
+            const video = document.getElementById('cameraFeed');
+            const canvas = document.getElementById('cameraCanvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            const base64Image = canvas.toDataURL("image/jpeg");
+            closeCameraModal();
+
+            const response = await fetch("/api/detect_live", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ image: base64Image })
+            });
+            const result = await response.json();
+            updateDashboard(result);
+
+            document.getElementById("diseaseImage").src = base64Image;
+            document.getElementById("initialPlaceholderIcon").classList.add("hidden");
+            document.getElementById("diseaseImage").classList.remove("hidden");
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Includes everything from requirements.txt
+-r requirements.txt
+
+# Jupyter environment (for experiments & reports)
+jupyter
+notebook
+ipykernel
+
+# Linting & formatting
+black
+flake8
+isort
+
+# Optional but useful
+jupyterlab
+matplotlib-inline

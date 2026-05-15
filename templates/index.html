@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeaSage AI - Detection Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Custom Styles to match the image aesthetics */
+        :root {
+            --primary-green: #388E3C;
+            --dark-green: #1B5E20;
+            --light-green: #8BC34A;
+            --background-color: #F8FAF0;
+        }
+
+        /* Set the background image and overlay */
+        .hero-bg {
+            background-image: url('E:\Major Project\Major-Project\src\tea_leaf.jpg'); 
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Semi-transparent white to fade the background slightly and lighten the cards */
+           /* background: rgba(255, 255, 255, 0.5); */
+            z-index: 1;
+        }
+
+        /* Ensures content is above the overlay */
+        .dashboard-content {
+            z-index: 2; 
+        }
+
+        /* Custom Card Style to mimic the frosted glass/soft edges */
+        .frosted-card {
+            background-color: rgba(255, 255, 255, 0.85); /* Slightly transparent white */
+            backdrop-filter: blur(5px); /* Add a subtle blur effect */
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .frosted-card:hover {
+            transform: translateY(-5px);
+        }
+        .navbar-solid-green { 
+            background-color: #1B5E20;
+            /* Added white text color for visibility on dark background */
+            color: white; 
+        }
+        /* Custom Green Colors for Tailwind */
+        .bg-custom-dark-green { background-color: var(--dark-green); }
+        .text-custom-dark-green { color: var(--dark-green); }
+        .bg-custom-light-green { background-color: var(--light-green); }
+        .hover\:bg-custom-light-green-darker:hover { background-color: #68A53B; }
+    </style>
+</head>
+
+<body class="hero-bg min-h-screen">
+
+   <header class="navbar flex justify-center items-center py-4 px-8 relative z-10 navbar-solid-green">
+        <div class="flex items-center space-x-2 mr-auto">
+            <i class="fas fa-search text-xl text-white"></i> 
+            <span class="text-xl font-semibold text-white tracking-wide">TeaSage AI</span>
+
+        </div>
+        <nav class="flex space-x-8 text-sm font-medium">
+            <a href="#" class="text-white hover:text-custom-light-green border-b-2 border-white pb-1 transition duration-300">Home</a>
+            <a href="#" class="text-white hover:text-custom-light-green pb-1 transition duration-300">Detect Disease</a>
+            <a href="#" class="text-white hover:text-custom-light-green pb-1 transition duration-300">About Us</a>
+            <a href="#" class="text-white hover:text-custom-light-green pb-1 transition duration-300">Contact</a>
+        </nav>
+        <div class="ml-auto">
+             <i class="fas fa-search text-lg text-white cursor-pointer"></i>
+        </div>
+    </header>
+
+    <main class="dashboard-content container mx-auto px-4 py-16 flex justify-center items-stretch space-x-8">
+
+    <div class="frosted-card w-1/4 p-6 text-center">
+        <h2 class="text-lg font-semibold mb-6 text-gray-700">Upload Image</h2>
+        <form id="uploadForm" action="/api/detect" method="POST" enctype="multipart/form-data">
+        
+            <div class="border-2 border-dashed border-gray-400 p-8 rounded-xl mb-6 flex flex-col items-center justify-center h-64">
+                <i class="fas fa-camera text-5xl text-gray-500 mb-4" id="uploadIcon"></i>
+                <input type="file" id="leafFile" name="file" accept="image/*" class="hidden">
+                <button type="button" onclick="document.getElementById('leafFile').click()" class="text-xs bg-gray-200 text-gray-700 px-3 py-1 rounded-full font-medium hover:bg-gray-300 transition duration-200">Browse Files</button>
+                <p id="fileNameDisplay" class="text-sm text-gray-500 mt-2 italic">No file selected</p>
+            </div>
+            <button type="submit" id="submitButton" class="bg-custom-light-green text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-custom-light-green-darker transition duration-300 flex items-center justify-center w-full mb-3">
+                    <i class="fas fa-check mr-2"></i> Analyze Leaf
+            </button>
+        </form>
+
+        <button class="bg-custom-dark-green text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-700 transition duration-300 flex items-center justify-center w-full">
+            <i class="fas fa-video mr-2"></i> Live Camera
+        </button>
+    </div>
+
+    <div class="frosted-card w-1/4 p-6 flex flex-col">
+    <h2 class="text-lg font-semibold mb-6 text-gray-700 text-center">Disease Information</h2>
+    
+    <div class="flex-grow flex flex-col">
+        <div class="h-48 w-full bg-gray-200 rounded-lg overflow-hidden mb-4 flex items-center justify-center"> 
+            <img 
+                src="" 
+                alt="Analyzed Tea Leaf" 
+                class="w-full h-full object-cover hidden" 
+                id="diseaseImage"
+            >
+            <i class="fas fa-leaf text-6xl text-gray-400" id="initialPlaceholderIcon"></i>
+        </div>
+
+        <h3 class="text-2xl font-extrabold text-gray-800 text-center mb-1" id="diseaseName">No Analysis Yet</h3>
+        <p class="text-xs text-gray-500 text-center mb-4" id="diseaseDetails">Upload an image to detect the disease</p>
+    </div>
+    
+    <div class="mt-auto"> 
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="bg-red-500 h-2.5 rounded-full" id="confidenceBar" style="width: 0%"></div>
+        </div>
+        <p class="text-xs text-right text-gray-600 mt-1" id="confidenceText">Confidence: 0%</p>
+    </div>
+    </div>
+
+    <div class="frosted-card w-1/4 p-6 flex flex-col">
+    <h2 class="text-lg font-semibold mb-6 text-gray-700 text-center">Curing Suggestions</h2>
+    
+    <ul class="space-y-4 text-left text-gray-700" id="curingSuggestionsList">
+        <li class="flex items-center text-sm">
+            <i class="fas fa-info-circle text-xl mr-3 text-gray-400"></i>
+            Awaiting analysis results...
+        </li>
+    </ul>
+</div>
+</main>
+<script>
+        document.getElementById('leafFile').addEventListener('change', function() {
+            const fileNameDisplay = document.getElementById('fileNameDisplay');
+            const diseaseImage = document.getElementById('diseaseImage'); 
+            const placeholderIcon = document.getElementById('initialPlaceholderIcon');
+            const file = this.files[0];
+            
+            if (file) {
+                // Display the selected file name
+                fileNameDisplay.textContent = file.name;
+                diseaseImage.classList.remove('hidden');
+                placeholderIcon.classList.add('hidden');
+                
+                // Show local preview of the image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('diseaseImage').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+
+            } else {
+                fileNameDisplay.textContent = 'No file selected';
+                diseaseImage.src = '';
+                diseaseImage.classList.add('hidden');
+                placeholderIcon.classList.remove('hidden');
+            }
+        });
+
+        // Event listener for form submission
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Stop the default form submission
+
+            const form = e.target;
+            const formData = new FormData(form);
+            const submitButton = document.getElementById('submitButton');
+            
+            // Show loading state
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Analyzing...';
+            submitButton.disabled = true;
+
+            try {
+                // 1. Send data to the backend API endpoint
+                const response = await fetch(form.action, {
+                    method: form.method,
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Analysis failed: ' + response.statusText);
+                }
+
+                // 2. Parse the JSON response from the backend
+                const result = await response.json();
+
+                // 3. Update the frontend with the results
+                updateDashboard(result);
+
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                document.getElementById('diseaseName').textContent = 'Error!';
+                document.getElementById('diseaseDetails').textContent = 'Could not connect to the server.';
+                updateSuggestions([{icon: 'fa-times-circle', text: 'Check server connection and API endpoint. Verify JSON format.'}]);
+
+            } finally {
+                // Reset button state
+                submitButton.innerHTML = '<i class="fas fa-check mr-2"></i> Analyze Leaf';
+                submitButton.disabled = false;
+            }
+        });
+
+
+        function updateDashboard(data) {
+            // Update Disease Information Card
+            document.getElementById('diseaseName').textContent = data.disease_name || 'Unknown Disease';
+            document.getElementById('diseaseDetails').textContent = data.sub_details || 'No specific details provided.';
+            
+            const confidence = data.confidence || 0;
+            const confidenceBar = document.getElementById('confidenceBar');
+            
+            // Update confidence bar width and color based on score
+            confidenceBar.style.width = confidence + '%';
+            confidenceBar.style.backgroundColor = confidence >= 80 ? '#388E3C' : confidence >= 50 ? '#F9A825' : '#D32F2F'; // Green, Yellow, Red
+            
+            document.getElementById('confidenceText').textContent = `Confidence: ${confidence}%`;
+            
+            // Update Curing Suggestions Card
+            updateSuggestions(data.suggestions || []);
+        }
+
+        function updateSuggestions(suggestions) {
+            const list = document.getElementById('curingSuggestionsList');
+            list.innerHTML = ''; // Clear existing list
+            
+            if (suggestions.length === 0) {
+                list.innerHTML = `<li class="flex items-center text-sm">
+                                    <i class="fas fa-check-circle text-xl mr-3 text-custom-light-green"></i>
+                                    The leaf appears healthy! (No specific suggestions)
+                                </li>`;
+                return;
+            }
+
+            suggestions.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'flex items-center text-sm';
+                li.innerHTML = `
+                    <i class="fas ${item.icon || 'fa-seedling'} text-xl mr-3 text-custom-light-green"></i>
+                    ${index + 1}. ${item.text}
+                `;
+                list.appendChild(li);
+            });
+        }
+</script>
+</body>
+</html>

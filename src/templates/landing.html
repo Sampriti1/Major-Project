@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeaLeaf Diagnostics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .hero-bg {
+            background-image: url('/static/tea_leaf.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+        .navbar-solid-green { background-color: #1B5E20; }
+        .frosted-card {
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .feature-card {
+            background-color: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(6px);
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+
+<body class="hero-bg min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <header class="navbar-solid-green flex items-center justify-between py-4 px-8 z-10">
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-leaf text-xl text-white"></i>
+            <span class="text-xl font-bold text-white tracking-wide">TeaLeaf Diagnostics</span>
+        </div>
+        <nav class="flex items-center space-x-6 text-sm font-medium">
+            <a href="#features" class="text-white hover:text-green-300 transition">Features</a>
+            <a href="#about" class="text-white hover:text-green-300 transition">About</a>
+            <a href="/detect"
+                class="bg-green-500 hover:bg-green-400 text-white font-bold px-5 py-2 rounded-full transition">
+                Get Started
+            </a>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+   <main class="flex-grow container mx-auto px-6 py-16">
+    <div class="flex flex-col items-center">
+
+        <div class="frosted-card w-full max-w-4xl px-10 py-12 mb-12 text-center">
+            <span class="inline-block bg-green-100 text-green-800 text-xs font-semibold px-4 py-1 rounded-full mb-4 uppercase tracking-wide">
+                AI-Powered Plant Health
+            </span>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-green-900 mb-4 leading-tight">
+                Detect Tea Leaf Diseases <br class="hidden md:block"> Instantly
+            </h1>
+            <p class="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
+                Upload a tea leaf photo or use your live camera to identify diseases 
+                in seconds and receive expert curing suggestions.
+            </p>
+            <div class="flex justify-center gap-4 flex-wrap">
+                <a href="/detect" class="bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3 rounded-full shadow-lg transition flex items-center gap-2">
+                    <i class="fas fa-microscope"></i> Start Diagnosing
+                </a>
+                <a href="#features" class="border-2 border-green-700 text-green-700 font-semibold px-8 py-3 rounded-full hover:bg-green-50 transition flex items-center gap-2">
+                    <i class="fas fa-info-circle"></i> Learn More
+                </a>
+            </div>
+        </div>
+
+        <div id="features" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full mb-12">
+            
+            <div class="feature-card p-6 text-center">
+                <div class="bg-green-100 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-upload text-2xl text-green-700"></i>
+                </div>
+                <h3 class="font-bold text-gray-800 mb-2">Upload & Detect</h3>
+                <p class="text-sm text-gray-600">Get instant AI-powered diagnosis from any photo.</p>
+            </div>
+
+            <div class="feature-card p-6 text-center">
+                <div class="bg-orange-100 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-fire text-2xl text-orange-500"></i>
+                </div>
+                <h3 class="font-bold text-gray-800 mb-2">Hotspot Heatmap</h3>
+                <p class="text-sm text-gray-600">Visualize the infected areas with Grad-CAM tech.</p>
+            </div>
+
+            <div class="feature-card p-6 text-center">
+                <div class="bg-blue-100 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-video text-2xl text-blue-600"></i>
+                </div>
+                <h3 class="font-bold text-gray-800 mb-2">Live Camera</h3>
+                <p class="text-sm text-gray-600">Real-time detection directly in the tea garden.</p>
+            </div>
+
+        </div>
+
+        <div id="about" class="frosted-card w-full max-w-4xl px-10 py-8 text-left mb-12">
+            <h2 class="text-2xl font-bold text-green-800 mb-3">About This Project</h2>
+            <p class="text-gray-600 text-sm leading-relaxed">
+                Built to help tea farmers in Northeast India quickly identify and treat leaf diseases using a fine-tuned EfficientNet-B2 model.
+            </p>
+        </div>
+
+    </div>
+</main>
+    <!-- Footer -->
+    <footer class="navbar-solid-green text-center text-sm text-white py-4">
+        © 2025 TeaLeaf Diagnostics &nbsp;•&nbsp; AI-powered Plant Health &nbsp;•&nbsp; Built for Northeast India Tea Farmers
+    </footer>
+
+</body>
+</html>

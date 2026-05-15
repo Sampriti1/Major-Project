@@ -1,0 +1,31 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+tea-env/
+env/
+venv/
+data/
+models/*.pth
+datasets/
+raw/
+# Temporary files
+*.log
+*.tmp
+
+# VSCode or IDE settings
+.vscode/
+.idea/
+
+
+# Virtual environment
+tea-env/
+
+# Temporary files
+*.log
+*.tmp
+
+# VSCode or IDE settings
+.vscode/
+.idea/
